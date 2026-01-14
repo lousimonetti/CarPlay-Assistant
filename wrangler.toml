@@ -1,3 +1,4 @@
+# yaml-like toml; schema is supported in wrangler.jsonc mainly, but leave as-is.
 name = "carplay-drive-assistant"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
@@ -7,3 +8,21 @@ DEFAULT_COUNTRY = "US"
 DEFAULT_LOCALE = "en-US"
 DEFAULT_NAV_PREFERENCE = "auto"
 CACHE_TTL_SECONDS = "604800" # 7 days
+
+# LLM provider selection:
+# - "openai" uses api.openai.com
+# - "azure_openai" uses your Azure OpenAI (Foundry Models) endpoint with v1 APIs
+LLM_PROVIDER = "openai"
+OPENAI_MODEL = "gpt-4o-mini"
+AZURE_OPENAI_MODEL = "gpt-4o-mini" # set to your Azure model deployment name
+
+# Optional: Worker-side rate limiting (Wrangler 4.36.0+).
+# If you keep this binding, the Worker will enforce a per-token/per-route limit using env.DRIVE_RATE_LIMITER.
+# namespace_id must be an integer unique within your Cloudflare account.
+[[ratelimits]]
+name = "DRIVE_RATE_LIMITER"
+namespace_id = "1001"
+# Default: 30 requests per 60 seconds (per Cloudflare location) per key.
+# Increase/decrease based on your usage.
+simple = { limit = 10, period = 60 }
+

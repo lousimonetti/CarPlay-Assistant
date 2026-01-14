@@ -1,11 +1,65 @@
 import { extractFirstOutputText, safeJsonParse } from "./util.js";
 
 /**
- * OpenAI Responses API + Structured Outputs (JSON Schema strict).
- * This lets the backend return a predictable execution plan.
+ * LLM provider abstraction for:
+ * - OpenAI (api.openai.com)
+ * - Azure OpenAI (Foundry Models) v1 APIs
+ *
+ * Azure v1 APIs are intended to align with OpenAI client semantics and use a base URL like:
+ *   https://<resource>.openai.azure.com/openai/v1/
+ * Azure key-based auth uses the `api-key` header. citeturn1view1turn1view3
  */
-export async function createPlanWithOpenAI({ apiKey, mode, utterance, ctx }) {
-  if (!apiKey) throw new Error("Missing OPENAI_API_KEY.");
+
+function getProvider(env) {
+  const p = (env.LLM_PROVIDER || "openai").toString().toLowerCase();
+  if (p === "azure" || p === "azure_openai" || p === "aoai") return "azure_openai";
+  return "openai";
+}
+
+function getModel(env, provider) {
+  if (provider === "azure_openai") {
+    return (env.AZURE_OPENAI_MODEL || env.OPENAI_MODEL || "gpt-4o-mini").toString();
+  }
+  return (env.OPENAI_MODEL || "gpt-4o-mini").toString();
+}
+
+function getBaseUrl(env, provider) {
+  if (provider === "azure_openai") {
+    const ep = (env.AZURE_OPENAI_ENDPOINT || "").toString().replace(/\/+$/, "");
+    if (!ep) throw new Error("Missing AZURE_OPENAI_ENDPOINT.");
+    // Azure v1 data-plane base path:
+    return `${ep}/openai/v1`;
+  }
+  return "https://api.openai.com/v1";
+}
+
+function buildHeaders(env, provider) {
+  if (provider === "azure_openai") {
+    const key = env.AZURE_OPENAI_API_KEY;
+    if (!key) throw new Error("Missing AZURE_OPENAI_API_KEY.");
+    return {
+      "Content-Type": "application/json",
+      "api-key": key
+    };
+  }
+
+  const key = env.OPENAI_API_KEY;
+  if (!key) throw new Error("Missing OPENAI_API_KEY.");
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${key}`
+  };
+}
+
+/**
+ * Create the navigation/music execution plan using Responses API + Structured Outputs (JSON Schema strict).
+ * Structured Outputs ensures the backend returns a predictable plan. citeturn0search3turn1view2
+ */
+export async function createPlanWithOpenAI({ env, mode, utterance, ctx }) {
+  const provider = getProvider(env);
+  const model = getModel(env, provider);
+  const baseUrl = getBaseUrl(env, provider);
+  const headers = buildHeaders(env, provider);
 
   const schema = {
     type: "object",
@@ -57,14 +111,11 @@ Rules:
     { role: "user", content: `Mode: ${mode}\nContext: ${JSON.stringify(ctx)}\nRequest: ${utterance}` }
   ];
 
-  const res = await fetch("https://api.openai.com/v1/responses", {
+  const res = await fetch(`${baseUrl}/responses`, {
     method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
+    headers,
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model,
       input,
       store: false,
       text: {
@@ -80,8 +131,7 @@ Rules:
   });
 
   if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(`OpenAI error ${res.status}: ${t}`);
+    throw new Error(`${provider} error ${res.status}`);
   }
 
   const data = await res.json();

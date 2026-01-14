@@ -8,3 +8,6 @@ Siri (CarPlay mic) → Shortcut → Backend → Shortcut executes URLs.
   - `nav_url` (Apple Maps / Google Maps / Waze)
   - optional `music_url` (Apple Music)
 - Shortcut opens the URLs.
+
+LLM provider can be OpenAI or Azure OpenAI (Foundry Models) v1 Responses API.
+

@@ -19,12 +19,30 @@ export default {
       return json({ error: "Use POST." }, 405);
     }
 
+// Basic request size guard (defense-in-depth; some clients may omit content-length)
+const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
+if (contentLength && contentLength > 8192) {
+  return json({ error: "Payload too large." }, 413);
+}
+
+
     const mode =
       url.pathname === "/plan/drive" ? "drive" :
       url.pathname === "/plan/nav" ? "nav" :
       null;
 
     if (!mode) return json({ error: "Not found." }, 404);
+
+// Optional rate limiting (requires [[ratelimits]] binding in wrangler.toml)
+// Use the Shortcut token as the key (recommended over IP-based limits).
+if (env.DRIVE_RATE_LIMITER) {
+  const token = request.headers.get("X-Drive-Token") || "unknown";
+  const key = `${token}:${mode}:${url.pathname}`;
+  const { success } = await env.DRIVE_RATE_LIMITER.limit({ key });
+  if (!success) {
+    return json({ error: "Rate limit exceeded." }, 429);
+  }
+}
 
     const body = await readJson(request);
     const utterance = (body.utterance || "").toString().trim().slice(0, 2000);
@@ -39,12 +57,7 @@ export default {
     };
 
     try {
-      const plan = await createPlanWithOpenAI({
-        apiKey: env.OPENAI_API_KEY,
-        mode,
-        utterance,
-        ctx
-      });
+      const plan = await createPlanWithOpenAI({ env, mode, utterance, ctx });
 
       if (plan.needs_clarification) {
         return json({

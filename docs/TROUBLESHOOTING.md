@@ -11,3 +11,10 @@ iOS sometimes opens to the item page; auto-play depends on state. You can add a 
 
 ## Multi-stop routes
 Multi-stop (stops array) will prefer Google Maps (supports waypoints in the URL).
+
+## Azure OpenAI: Responses API not available
+If Azure returns a 404/unsupported error, confirm your resource region supports the Responses API and that you are using the v1 base URL (`/openai/v1/`).
+
+## 429 Rate limit exceeded
+Your token hit the configured rate limit. Reduce retry loops or increase `simple.limit` in `wrangler.toml`.
+
