@@ -1,0 +1,9 @@
+name = "carplay-drive-assistant"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+DEFAULT_COUNTRY = "US"
+DEFAULT_LOCALE = "en-US"
+DEFAULT_NAV_PREFERENCE = "auto"
+CACHE_TTL_SECONDS = "604800" # 7 days

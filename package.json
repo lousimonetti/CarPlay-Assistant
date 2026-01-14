@@ -1,0 +1,15 @@
+{
+  "name": "carplay-drive-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CarPlay-friendly Siri Shortcuts backend that plans navigation + Apple Music using OpenAI Structured Outputs.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
