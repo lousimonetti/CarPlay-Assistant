@@ -35,6 +35,24 @@ Azure supports API-key auth via the `api-key` header (and also supports Microsof
 ### Notes
 - The Azure **Responses API** is region-scoped. Ensure your Azure OpenAI resource is in a region where the Responses API is available. citeturn1view0
 
+
+## iPhone / CarPlay setup
+For the full step-by-step guide to building the iOS Shortcuts (including how to configure **Get Contents of URL**, headers, and JSON body), see:
+- `docs/PHONE_SETUP.md`
+
+
+
+## App Store–deployable quick win (iOS app with App Intents)
+If you want a shareable, deployable solution without manual Shortcut setup, use the included SwiftUI app skeleton:
+- `ios-app/DriveAssistantApp/`
+
+It provides App Shortcuts via App Intents (“Drive Assistant” and “Navigate Assistant”) and calls the same Worker endpoints.
+See `ios-app/DriveAssistantApp/README.md`.
+
+## Distribution options
+- Share the shortcuts via **iCloud link** or **file export** (Apple-supported). citeturn0search0turn0search3
+- For App Store distribution, ship an iOS app that exposes **App Intents / App Shortcuts** instead of trying to distribute a shortcut alone. citeturn1search9turn0search6turn1search17
+
 ## Endpoints
 - `POST /plan/nav`
 - `POST /plan/drive`
@@ -120,4 +138,5 @@ You should get a small JSON response like `{ "ok": true, ... }`.
 npm run dev
 npm test
 ```
+
 

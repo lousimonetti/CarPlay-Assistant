@@ -44,3 +44,6 @@ Run in the car:
 Same, but:
 - URL: `https://<your-worker-domain>/plan/nav`
 - Only open `nav_url`
+
+For the full, detailed phone build guide (including headers, JSON body configuration, and distribution options), see `docs/PHONE_SETUP.md`.
+
